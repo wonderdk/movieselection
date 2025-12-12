@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Movie Night</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, #3c1c5f 0, #05030b 55%, #000000 100%);
+      color: #f7f4ff;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .marquee {
+      text-align: center;
+      padding: 12px 10px 10px;
+      border-radius: 10px;
+      border: 2px solid #ffd56a;
+      background:
+        linear-gradient(135deg, rgba(255, 228, 150, 0.08), rgba(153, 102, 255, 0.15));
+      box-shadow:
+        0 0 20px rgba(0, 0, 0, 0.8),
+        0 0 4px rgba(255, 213, 106, 0.7);
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .marquee::before,
+    .marquee::after {
+      content: "";
+      position: absolute;
+      left: -10px;
+      right: -10px;
+      height: 4px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          #ff3366,
+          #ff3366 5px,
+          #ffd56a 5px,
+          #ffd56a 10px,
+          #32e0ff 10px,
+          #32e0ff 15px
+        );
+    }
+
+    .marquee::before {
+      top: -6px;
+    }
+    .marquee::after {
+      bottom: -6px;
+    }
+
+    .marquee-title {
+      font-size: 1.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-shadow: 0 0 8px #ff7de5;
+    }
+
+    .marquee-sub {
+      margin-top: 6px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .movie-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .movie-card {
+      display: flex;
+      gap: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(5, 4, 18, 0.96);
+      border: 1px solid rgba(255, 213, 106, 0.7);
+      box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.8),
+        0 0 8px rgba(57, 255, 186, 0.2);
+      backdrop-filter: blur(3px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .movie-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.03),
+          rgba(255, 255, 255, 0.03) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+    }
+
+    .movie-inner {
+      display: flex;
+      gap: 14px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .poster {
+      flex: 0 0 38%;
+      max-width: 220px;
+      aspect-ratio: 2 / 3;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      position: relative;
+      background: #111;
+    }
+
+    .poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .poster-noise {
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.0),
+          rgba(0, 0, 0, 0.0) 2px,
+          rgba(0, 0, 0, 0.16) 2px,
+          rgba(0, 0, 0, 0.16) 3px
+        );
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .details {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .movie-header {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .movie-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .movie-year {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .movie-meta {
+      font-size: 0.78rem;
+      opacity: 0.8;
+    }
+
+    .movie-description {
+      font-size: 0.86rem;
+      line-height: 1.35;
+      opacity: 0.95;
+    }
+
+    .movie-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .rating {
+      min-width: 140px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 213, 106, 0.8);
+      background:
+        linear-gradient(135deg, rgba(255, 213, 106, 0.16), rgba(57, 255, 186, 0.12));
+      font-size: 0.8rem;
+    }
+
+    .rating-label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.68rem;
+      opacity: 0.85;
+    }
+
+    .rating-value {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .rating-tomato {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffe3aa 0, #ff3b3b 40%, #7a1111 100%);
+      box-shadow: 0 0 6px rgba(255, 59, 59, 0.8);
+      position: relative;
+    }
+
+    .rating-tomato::after {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: 3px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50% 50% 0 0;
+      background: linear-gradient(135deg, #67ff9c, #2bcc68);
+    }
+
+    .links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 0.78rem;
+    }
+
+    .link-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(144, 207, 255, 0.8);
+      text-decoration: none;
+      color: #cfe9ff;
+      background: rgba(3, 14, 35, 0.9);
+    }
+
+    .link-pill:hover {
+      background: rgba(18, 45, 96, 0.9);
+    }
+
+    @media (max-width: 720px) {
+      .movie-card {
+        padding: 10px;
+      }
+
+      .movie-inner {
+        flex-direction: column;
+      }
+
+      .poster {
+        flex: 0 0 auto;
+        max-width: 100%;
+        margin: 2px auto 0;
+      }
+
+      .movie-title {
+        font-size: 1.05rem;
+      }
+
+      .movie-description {
+        font-size: 0.84rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="marquee">
+      <div class="marquee-title">Movie Night '95</div>
+      <div class="marquee-sub">Posters up, ratings ready. Choose your poison.</div>
+    </header>
+
+    <main class="movie-grid">
+      <!-- Interstellar -->
+      <article class="movie-card">
+        <div class="movie-inner">
+          <div class="poster">
+            <!-- INSERT PICTURE HERE: Interstellar -->
+            <img src="https://s1.qwant.com/thumbr/474x692/b/4/96a8cd2afab3cdde5825fc57edb3e1d1be79f5e066624637d5fa9c7fad3dd6/OIP.aQHX3A1wOkGE-4-MWO-tGQHaK0.jpg?u=https%3A%2F%2Ftse.mm.bing.net%2Fth%2Fid%2FOIP.aQHX3A1wOkGE-4-MWO-tGQHaK0%3Fcb%3Ducfimg2%26pid%3DApi%26ucfimg%3D1&q=0&b=1&p=0&a=0" />
+            <div class="poster-noise"></div>
+          </div>
+          <div class="details">
+            <div>
+              <div class="movie-header">
+                <h2 class="movie-title">Interstellar</h2>
+                <span class="movie-year">(2014)</span>
+              </div>
+              <div class="movie-meta">
+                Sci-Fi • Adventure • 2h 45m
+              </div>
+              <p class="movie-description">
+                In a dying future Earth, a former NASA pilot joins a desperate mission
+                through a wormhole to find a new home for humanity, gambling everything
+                on love, relativity and a very broken time-table.
+              </p>
+            </div>
+            <div class="movie-footer">
+              <div class="rating">
+                <div class="rating-tomato"></div>
+                <div>
+                  <div class="rating-label">Rotten Tomatoes</div>
+                  <div class="rating-value">73% critics</div>
+                </div>
+              </div>
+              <div class="links">
+                <a class="link-pill" href="https://www.imdb.com/title/tt0816692/" target="_blank">
+                  IMDB
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Frankenstein -->
+      <article class="movie-card">
+        <div class="movie-inner">
+          <div class="poster">
+            <!-- INSERT PICTURE HERE: Frankenstein -->
+            <img src="https://s1.qwant.com/thumbr/474x703/a/9/17ea9bfa0dba1dcf3ebf8bf9807b4c1fe867ff8c866b902d2be489517c38f3/OIP.wvDnNxaUPQrL4zUwUngWHgHaK_.jpg?u=https%3A%2F%2Ftse.mm.bing.net%2Fth%2Fid%2FOIP.wvDnNxaUPQrL4zUwUngWHgHaK_%3Fcb%3Ducfimg2%26pid%3DApi%26ucfimg%3D1&q=0&b=1&p=0&a=0" alt="Frankenstein poster" />
+            <div class="poster-noise"></div>
+          </div>
+          <div class="details">
+            <div>
+              <div class="movie-header">
+                <h2 class="movie-title">Frankenstein</h2>
+                <span class="movie-year">(2025)</span>
+              </div>
+              <div class="movie-meta">
+                Horror • Drama • 2h 29m
+              </div>
+              <p class="movie-description">
+                A brilliant, arrogant scientist cobbles life from dead flesh and ends up
+                haunted by the creature who understands humanity better than he does.
+                Operatic, romantic and morally messy.
+              </p>
+            </div>
+            <div class="movie-footer">
+              <div class="rating">
+                <div class="rating-tomato"></div>
+                <div>
+                  <div class="rating-label">Rotten Tomatoes</div>
+                  <div class="rating-value">85% critics</div>
+                </div>
+              </div>
+              <div class="links">
+                <a class="link-pill" href="https://www.imdb.com/title/tt1312221/" target="_blank">
+                  IMDB
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Sinners -->
+      <article class="movie-card">
+        <div class="movie-inner">
+          <div class="poster">
+            <!-- INSERT PICTURE HERE: Sinners -->
+            <img src="https://s2.qwant.com/thumbr/474x751/4/6/8bfb8ad9170104909b09cf0a720f0902897d2dad2e652654073303cfb44b8f/OIP.CYeqdh7I96IXNlVqcASiZwHaLv.jpg?u=https%3A%2F%2Ftse.mm.bing.net%2Fth%2Fid%2FOIP.CYeqdh7I96IXNlVqcASiZwHaLv%3Fcb%3Ducfimg2%26pid%3DApi%26ucfimg%3D1&q=0&b=1&p=0&a=0" />
+            <div class="poster-noise"></div>
+          </div>
+          <div class="details">
+            <div>
+              <div class="movie-header">
+                <h2 class="movie-title">Sinners</h2>
+                <span class="movie-year">(2025)</span>
+              </div>
+              <div class="movie-meta">
+                Horror • Thriller • 2h 17m
+              </div>
+              <p class="movie-description">
+                Twin brothers trying to outrun their past return to 1930s Mississippi
+                and walk straight into a supernatural trap of blues, blood and old sins
+                that refuse to stay buried.
+              </p>
+            </div>
+            <div class="movie-footer">
+              <div class="rating">
+                <div class="rating-tomato"></div>
+                <div>
+                  <div class="rating-label">Rotten Tomatoes</div>
+                  <div class="rating-value">97% critics</div>
+                </div>
+              </div>
+              <div class="links">
+                <a class="link-pill" href="https://www.imdb.com/title/tt31193180/" target="_blank">
+                  IMDB
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Pearl -->
+      <article class="movie-card">
+        <div class="movie-inner">
+          <div class="poster">
+            <!-- INSERT PICTURE HERE: Pearl -->
+            <img src="https://s2.qwant.com/thumbr/474x751/4/6/8bfb8ad9170104909b09cf0a720f0902897d2dad2e652654073303cfb44b8f/OIP.CYeqdh7I96IXNlVqcASiZwHaLv.jpg?u=https%3A%2F%2Ftse.mm.bing.net%2Fth%2Fid%2FOIP.CYeqdh7I96IXNlVqcASiZwHaLv%3Fcb%3Ducfimg2%26pid%3DApi%26ucfimg%3D1&q=0&b=1&p=0&a=0" />
+            <div class="poster-noise"></div>
+          </div>
+          <div class="details">
+            <div>
+              <div class="movie-header">
+                <h2 class="movie-title">Pearl</h2>
+                <span class="movie-year">(2022)</span>
+              </div>
+              <div class="movie-meta">
+                Horror • Thriller • 1h 42m
+              </div>
+              <p class="movie-description">
+                Stuck on an isolated farm with her sick father and vicious mother,
+                Pearl dreams of stardom and a bigger life. Her ambition curdles into
+                something violent and unforgettable.
+              </p>
+            </div>
+            <div class="movie-footer">
+              <div class="rating">
+                <div class="rating-tomato"></div>
+                <div>
+                  <div class="rating-label">Rotten Tomatoes</div>
+                  <div class="rating-value">93% critics</div>
+                </div>
+              </div>
+              <div class="links">
+                <a class="link-pill" href="https://www.imdb.com/title/tt18925334/" target="_blank">
+                  IMDB
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- The Hateful Eight -->
+      <article class="movie-card">
+        <div class="movie-inner">
+          <div class="poster">
+            <!-- INSERT PICTURE HERE: The Hateful Eight -->
+            <img src="https://s1.qwant.com/thumbr/474x702/a/b/26f1ca74828adf69798a4c98c06e1a82d483ec033a5c3313456427ac50fc07/OIP.TZ-ospBfX93i9JCyTNq5DgHaK-.jpg?u=https%3A%2F%2Ftse.mm.bing.net%2Fth%2Fid%2FOIP.TZ-ospBfX93i9JCyTNq5DgHaK-%3Fcb%3Ducfimg2%26pid%3DApi%26ucfimg%3D1&q=0&b=1&p=0&a=0" alt="The Hateful Eight poster" />
+            <div class="poster-noise"></div>
+          </div>
+          <div class="details">
+            <div>
+              <div class="movie-header">
+                <h2 class="movie-title">The Hateful Eight</h2>
+                <span class="movie-year">(2015)</span>
+              </div>
+              <div class="movie-meta">
+                Western • Thriller • 2h 48m
+              </div>
+              <p class="movie-description">
+                Strangers take shelter from a blizzard in a remote Wyoming cabin, each
+                lying through their teeth while tensions, secrets and bullets slowly
+                build toward a very ugly truth.
+              </p>
+            </div>
+            <div class="movie-footer">
+              <div class="rating">
+                <div class="rating-tomato"></div>
+                <div>
+                  <div class="rating-label">Rotten Tomatoes</div>
+                  <div class="rating-value">74% critics</div>
+                </div>
+              </div>
+              <div class="links">
+                <a class="link-pill" href="https://www.imdb.com/title/tt3460252" target="_blank">
+                  IMDB
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Brawl in Cell Block 99 -->
+      <article class="movie-card">
+        <div class="movie-inner">
+          <div class="poster">
+            <!-- INSERT PICTURE HERE: Brawl in Cell Block 99 -->
+            <img src="https://s2.qwant.com/thumbr/474x669/5/e/5989f47adbb17ee9c199c0bdb8ec9413ef6a0a0ea32e7703c676c4e586d27d/OIP.qOdWcCVShqsCXAaXW1X58QHaKd.jpg?u=https%3A%2F%2Ftse.mm.bing.net%2Fth%2Fid%2FOIP.qOdWcCVShqsCXAaXW1X58QHaKd%3Fcb%3Ducfimg2%26pid%3DApi%26ucfimg%3D1&q=0&b=1&p=0&a=0" alt="Brawl in Cell Block 99 poster" />
+            <div class="poster-noise"></div>
+          </div>
+          <div class="details">
+            <div>
+              <div class="movie-header">
+                <h2 class="movie-title">Brawl in Cell Block 99</h2>
+                <span class="movie-year">(2017)</span>
+              </div>
+              <div class="movie-meta">
+                Action • Thriller • 2h 12m
+              </div>
+              <p class="movie-description">
+                A former boxer turned drug courier lands in a brutal prison where he’s
+                forced to fight his way through ever-worse cell blocks, doing terrible
+                things for a slim chance at saving his family.
+              </p>
+            </div>
+            <div class="movie-footer">
+              <div class="rating">
+                <div class="rating-tomato"></div>
+                <div>
+                  <div class="rating-label">Rotten Tomatoes</div>
+                  <div class="rating-value">90% critics</div>
+                </div>
+              </div>
+              <div class="links">
+                <a class="link-pill" href="https://www.imdb.com/title/tt5657856/" target="_blank">
+                  IMDB
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </main>
+  </div>
+</body>
+</html>
